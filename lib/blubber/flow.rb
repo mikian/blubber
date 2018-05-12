@@ -1,3 +1,4 @@
+require 'highline'
 require 'open3'
 
 require 'blubber/builder'
@@ -5,9 +6,25 @@ require 'blubber/tagger'
 
 module Blubber
   class Flow
+    def self.build(layers = nil)
+      layers ||= Dir['**/*/Dockerfile'].map { |d| File.dirname(d) }
+
+      images = layers.map { |layer| Flow.new(layer: layer).run }
+
+      table = [HighLine.color('Layer', :bold), HighLine.color('Tag', :bold)]
+      table += images.map do |(project, tags)|
+        tags.map do |tag|
+          [project, tag ]
+        end
+      end
+
+      puts HighLine.new.list(table.flatten, :columns_across, 2)
+    end
+
     def initialize(layer:)
       @layer = layer
     end
+
 
     def run
       image = Builder.new(layer: layer, logger: logger).run
