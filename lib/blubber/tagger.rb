@@ -44,9 +44,7 @@ module Blubber
     end
 
     def docker_registry
-      format('%<host>s/%<project>s',
-             host: ENV.fetch('DOCKER_REGISTRY'),
-             project: 'etl')
+      ENV.fetch('DOCKER_REGISTRY')
     end
 
     def ui
