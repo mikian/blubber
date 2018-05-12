@@ -23,7 +23,8 @@ module Blubber
     end
 
     def tags
-      @tags ||= [].tap do |tags|
+      @tags ||= begin
+        tags = []
         tags << "#{commit}#{dirty? ? '-dirty' : ''}"
 
         unless dirty?
@@ -31,7 +32,9 @@ module Blubber
           tags << 'latest' if branch_name == 'master'
         end
 
-        tags += File.read("#{layer}/Dockerfile").scan(/LABEL version=([\w][\w.-]*)/).flatten
+        tags << File.read("#{layer}/Dockerfile").scan(/LABEL version=([\w][\w.-]*)/)
+
+        tags.flatten
       end
     end
 
