@@ -31,7 +31,7 @@ module Blubber
           tags << 'latest' if branch_name == 'master'
         end
 
-        tags.append(*File.read("#{layer}/Dockerfile").scan(/LABEL version=([\w][\w.-]*)/).flatten)
+        tags += File.read("#{layer}/Dockerfile").scan(/LABEL version=([\w][\w.-]*)/).flatten
       end
     end
 
