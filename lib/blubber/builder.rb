@@ -35,7 +35,7 @@ module Blubber
     end
 
     def tagger
-      @tagger ||= Tagger.new(layer:, image_id: nil)
+      @tagger ||= Tagger.new(layer: layer image_id: nil)
     end
 
     def build_ids
