@@ -35,7 +35,7 @@ module Blubber
     end
 
     def tagger
-      @tagger ||= Tagger.layer(:layer, image_id: nil)
+      @tagger ||= Tagger.new(layer: layer, image_id: nil)
     end
 
     def build_ids
@@ -45,7 +45,7 @@ module Blubber
     def build(layer)
       # NOTICE : Speed up build for fresh slave
       tagger.tags.each do |tag|
-        runner.run("docker pull #{tagger.docker_registry}/#{layer}:#{tag}")
+        runner.run("docker pull #{Tagger.docker_registry}/#{layer}:#{tag}")
       end
 
       status = nil
