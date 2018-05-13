@@ -26,12 +26,6 @@ module Blubber
 
     attr_reader :layer, :logger
 
-    def docker_registry
-      format('%<host>s/%<project>s',
-             host: ENV.fetch('DOCKER_REGISTRY'),
-             project: 'etl')
-    end
-
     def ui
       @ui ||= HighLine.new
     end
@@ -40,8 +34,8 @@ module Blubber
       @runner ||= Runner.new(logger: logger)
     end
 
-    def tags
-      @tags ||= Tagger.new(layer: layer, image_id: nil).tags
+    def tagger
+      @tagger ||= Tagger.layer(:layer, image_id: nil)
     end
 
     def build_ids
@@ -50,8 +44,8 @@ module Blubber
 
     def build(layer)
       # NOTICE : Speed up build for fresh slave
-      tags.each do |tag|
-        runner.run("docker pull #{docker_registry}/#{layer}:#{tag}")
+      tagger.tags.each do |tag|
+        runner.run("docker pull #{tagger.docker_registry}/#{layer}:#{tag}")
       end
 
       status = nil

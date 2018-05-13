@@ -6,6 +6,10 @@ require 'blubber/runner'
 
 module Blubber
   class Tagger
+    def self.docker_registry
+      ENV.fetch('DOCKER_REGISTRY')
+    end
+
     def initialize(layer:, image_id:, logger: nil)
       @layer = layer
       @image_id = image_id
@@ -19,7 +23,7 @@ module Blubber
     end
 
     def project
-      "#{docker_registry}/#{layer}"
+      "#{Tagger.docker_registry}/#{layer}"
     end
 
     def tags
@@ -44,10 +48,6 @@ module Blubber
 
     def runner
       @runner ||= Runner.new(logger: logger)
-    end
-
-    def docker_registry
-      ENV.fetch('DOCKER_REGISTRY')
     end
 
     def ui
