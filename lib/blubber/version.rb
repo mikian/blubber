@@ -1,3 +1,3 @@
 module Blubber
-  VERSION = '0.1.7.4'.freeze
+  VERSION = '0.1.8'.freeze
 end

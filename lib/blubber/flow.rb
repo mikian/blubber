@@ -12,28 +12,30 @@ module Blubber
       images = layers.map { |layer| Flow.new(layer: layer).run }
 
       table = [HighLine.color('Layer', :bold), HighLine.color('Tag', :bold)]
-      table += images.map do |(project, tags)|
-        tags.map do |tag|
-          [project, tag ]
+      table += images.map do |image|
+        if image[:success]
+          image[:tags].map { |tag| [image[:project], tag] }
+        else
+          [image[:project], HighLine.color('FAILED', :red)]
         end
       end
 
       puts HighLine.new.list(table.flatten, :columns_across, 2)
+
+      images.all? { |image| image[:success] }
     end
 
     def initialize(layer:)
       @layer = layer
     end
 
-
     def run
       image = Builder.new(layer: layer, logger: logger).run
-      return unless image[:success]
 
       tagger = Tagger.new(layer: layer, image_id: image[:id], logger: logger)
-      tagger.run
+      tagger.run if image[:success]
 
-      [tagger.project, tagger.tags]
+      image.merge(project: tagger.project, tags: tagger.tags)
     end
 
     private
