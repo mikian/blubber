@@ -23,7 +23,10 @@ module Blubber
     end
 
     def project
-      "#{Tagger.docker_registry}/#{layer}"
+      [
+        Tagger.docker_registry,
+        *layer.split('/').select { |p| p[/[a-z0-9]+/] }
+      ].join('/')
     end
 
     def tags

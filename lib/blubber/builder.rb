@@ -43,11 +43,6 @@ module Blubber
     end
 
     def build(layer)
-      # NOTICE : Speed up build for fresh slave
-      tagger.tags.each do |tag|
-        runner.run("docker pull #{Tagger.docker_registry}/#{layer}:#{tag}")
-      end
-
       status = nil
       Dir.chdir(layer) do
         status = runner.run('docker build .') do |stdout, _, _|

@@ -7,7 +7,7 @@ require 'blubber/tagger'
 module Blubber
   class Flow
     def self.build(layers = nil)
-      layers ||= Dir['**/*/Dockerfile'].map { |d| File.dirname(d) }
+      layers ||= Dir['**/*/Dockerfile'].map { |d| File.dirname(d) }.sort
 
       images = layers.map { |layer| Flow.new(layer: layer).run }
 
