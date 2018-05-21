@@ -33,6 +33,9 @@ module Blubber
           Dir['**/*/Dockerfile'].map { |d| File.dirname(d) }.sort
         else
           commit = ENV['GIT_COMMIT'] || `git rev-parse HEAD`.strip
+
+          puts "Detecting changed layers between #{ENV['GIT_PREVIOUS_SUCCESSFUL_COMMIT']}..#{commit}"
+
           changes = `git diff --name-only #{ENV['GIT_PREVIOUS_SUCCESSFUL_COMMIT']}..#{commit}`.split("\n")
           paths = []
           changes.each do |path|
