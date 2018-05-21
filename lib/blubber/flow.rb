@@ -9,6 +9,8 @@ module Blubber
     def self.build(layers = nil)
       layers ||= changed_layers
 
+      puts "Building layers: #{layers.join(', ')}"
+      
       images = layers.map { |layer| Flow.new(layer: layer).run }
 
       table = [HighLine.color('Layer', :bold), HighLine.color('Tag', :bold)]
