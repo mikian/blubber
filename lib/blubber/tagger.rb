@@ -32,7 +32,7 @@ module Blubber
     def tags
       @tags ||= begin
         tags = []
-        tags << "#{commit}#{dirty? ? '-dirty' : ''}"
+        tags << commit
 
         unless dirty?
           tags << branch_name.gsub(/[^\w.-]/, '_') unless branch_name.empty?
@@ -41,7 +41,7 @@ module Blubber
 
         tags << File.read("#{layer}/Dockerfile").scan(/LABEL version=([\w][\w.-]*)/)
 
-        tags.flatten
+        tags.flatten.map { |t| "#{t}#{dirty? ? '-dirty' : ''}" }
       end
     end
 
