@@ -29,7 +29,9 @@ module Blubber
 
     def self.changed_layers
       @changed_layers ||= begin
-        if ENV['GIT_PREVIOUS_SUCCESSFUL_COMMIT'] != '' && ENV['BUILD_ALL'] != 'true'
+        if ENV.fetch('GIT_PREVIOUS_SUCCESSFUL_COMMIT', '').empty? || ENV['BUILD_ALL'] == 'true'
+          Dir['**/*/Dockerfile'].map { |d| File.dirname(d) }.sort
+        else
           commit = ENV['GIT_COMMIT'] || `git rev-parse HEAD`.strip
           changes = `git diff --name-only #{ENV['GIT_PREVIOUS_SUCCESSFUL_COMMIT']}..#{commit}`.split("\n")
           paths = []
@@ -40,8 +42,6 @@ module Blubber
             end
           end
           paths
-        else
-          Dir['**/*/Dockerfile'].map { |d| File.dirname(d) }.sort
         end
       end
     end
