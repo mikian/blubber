@@ -6,7 +6,7 @@ module Blubber
   class Cli < Thor
     desc 'build', 'Builds all found Docker images'
     def build
-      Flow.build
+      exit(Flow.build) # Fails to build if any layer fails
     end
   end
 end
