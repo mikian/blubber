@@ -22,13 +22,6 @@ module Blubber
       push
     end
 
-    def project
-      [
-        Tagger.docker_registry,
-        *layer.split('/').select { |p| p[/[a-z0-9]+/] }
-      ].join('/')
-    end
-
     def tags
       @tags ||= begin
         tags = []
@@ -43,6 +36,17 @@ module Blubber
 
         tags.flatten.map { |t| "#{t}#{dirty? ? '-dirty' : ''}" }
       end
+    end
+
+    def project
+      [
+        Tagger.docker_registry,
+        *layer.split('/').select { |p| p[/[a-z0-9]+/] }
+      ].join('/')
+    end
+
+    def branch_name
+      @branch_name ||= ENV['BRANCH_NAME'] || `git rev-parse HEAD | git branch -a --contains | sed -n 2p | cut -d'/' -f 3-`.strip
     end
 
     private
@@ -63,10 +67,6 @@ module Blubber
 
     def commit
       @commit ||= ENV['GIT_COMMIT'] || `git rev-parse HEAD`.strip
-    end
-
-    def branch_name
-      @branch_name ||= ENV['BRANCH_NAME'] || `git rev-parse HEAD | git branch -a --contains | sed -n 2p | cut -d'/' -f 3-`.strip
     end
 
     def push

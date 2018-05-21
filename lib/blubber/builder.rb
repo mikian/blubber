@@ -45,7 +45,7 @@ module Blubber
     def build(layer)
       status = nil
       Dir.chdir(layer) do
-        status = runner.run('docker build .') do |stdout, _, _|
+        status = runner.run("docker build --build-arg BRANCH_NAME=#{tagger.branch_name} .") do |stdout, _, _|
           if stdout && (m = stdout.match(/Successfully built ([a-z0-9]{12})/))
             build_ids[layer] = m[1]
           end
