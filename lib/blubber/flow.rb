@@ -10,7 +10,7 @@ module Blubber
       layers ||= changed_layers
 
       puts "Building layers: #{layers.join(', ')}"
-      
+
       images = layers.map { |layer| Flow.new(layer: layer).run }
 
       table = [HighLine.color('Layer', :bold), HighLine.color('Tag', :bold)]
@@ -34,9 +34,8 @@ module Blubber
           changes = `git diff --name-only #{ENV['GIT_PREVIOUS_SUCCESSFUL_COMMIT']}..#{commit}`.split("\n")
           paths = []
           changes.each do |path|
-            paths = []
             dirs = File.dirname(path).split(File::SEPARATOR)
-            dirs.map.with_index { |e, i| dirs[0..i].join(File::SEPARATOR) }.reverse.each do |dir|
+            dirs.map.with_index { |_, i| dirs[0..i].join(File::SEPARATOR) }.reverse.each do |dir|
               paths << dir if File.exist?(File.join(dir, 'Dockerfile'))
             end
           end
