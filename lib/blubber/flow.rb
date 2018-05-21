@@ -43,6 +43,7 @@ module Blubber
     attr_reader :layer
 
     def logger
+      STDOUT.sync = true
       @logger ||= Logger.new(STDOUT).tap do |logger|
         logger.progname = layer
         logger.formatter = proc do |severity, datetime, progname, msg|
