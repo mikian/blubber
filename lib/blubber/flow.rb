@@ -7,7 +7,7 @@ require 'blubber/tagger'
 module Blubber
   class Flow
     def self.build(layers = nil)
-      layers ||= Dir['**/*/Dockerfile'].map { |d| File.dirname(d) }.sort
+      layers ||= changed_layers
 
       images = layers.map { |layer| Flow.new(layer: layer).run }
 
@@ -23,6 +23,26 @@ module Blubber
       puts HighLine.new.list(table.flatten, :columns_across, 2)
 
       images.all? { |image| image[:success] }
+    end
+
+    def self.changed_layers
+      @changed_layers ||= begin
+        if ENV['GIT_PREVIOUS_SUCCESSFUL_COMMIT'] != '' && ENV['BUILD_ALL'] != 'true'
+          commit = ENV['GIT_COMMIT'] || `git rev-parse HEAD`.strip
+          changes = `git diff --name-only #{ENV['GIT_PREVIOUS_SUCCESSFUL_COMMIT']}..#{commit}`.split("\n")
+          paths = []
+          changes.each do |path|
+            paths = []
+            dirs = File.dirname(path).split(File::SEPARATOR)
+            dirs.map.with_index { |e, i| dirs[0..i].join(File::SEPARATOR) }.reverse.each do |dir|
+              paths << dir if File.exist?(File.join(dir, 'Dockerfile'))
+            end
+          end
+          paths
+        else
+          Dir['**/*/Dockerfile'].map { |d| File.dirname(d) }.sort
+        end
+      end
     end
 
     def initialize(layer:)
