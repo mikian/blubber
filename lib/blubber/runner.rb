@@ -6,9 +6,10 @@ module Blubber
       @logger = logger
     end
 
-    def run(cmd)
+    def run(*cmd)
+      logger.info "Running #{cmd}"
       # see: http://stackoverflow.com/a/1162850/83386
-      Open3.popen3(cmd) do |_stdin, stdout, stderr, thread|
+      Open3.popen3(cmd.join(' ')) do |_stdin, stdout, stderr, thread|
         # read each stream from a new thread
         { out: stdout, err: stderr }.each do |key, stream|
           Thread.new do

@@ -1,25 +1,59 @@
 require 'highline'
 require 'logger'
-require 'open3'
 
 require 'blubber/runner'
-require 'blubber/tagger'
+require 'blubber/logger'
 
 module Blubber
   class Builder
     def initialize(layer:, logger: nil)
       @layer = layer
-      @logger = logger
+      @logger = logger || Logger.for(name: layer.name)
     end
 
-    def run
-      logger.info ui.color("BUILDING", :yellow)
-      retval = build(layer)
-      level, color = retval.zero? ? [:info, :green] : [:error, :red]
+    def build
+      logger.info ui.color('BUILDING', :yellow)
+      retval = do_build
+      level, color = retval.zero? ? %i[info green] : %i[error red]
 
-      logger.public_send(level, ui.color("#{layer}: #{retval.zero? ? 'SUCCESS' : 'ERROR'}", color))
+      logger.public_send(level,
+                         ui.color((retval.zero? ? 'SUCCESS' : 'ERROR'), color))
 
-      { success: retval.zero?, id: build_ids[layer] }
+      retval.zero?
+    end
+
+    def tag
+      logger.info ui.color('TAGGING', :yellow)
+      status = {}
+      layer.tags.each do |tag|
+        status[tag] = runner.run("docker tag #{layer.build_id} #{layer.project_tag(tag)}")
+      end
+
+      retval = status.values.reduce(:+)
+
+      level, color = retval.zero? ? %i[info green] : %i[error red]
+
+      logger.public_send(level,
+                         ui.color((retval.zero? ? 'SUCCESS' : 'ERROR'), color))
+
+      retval.zero?
+    end
+
+    def push
+      logger.info ui.color('PUSHING', :yellow)
+      status = {}
+      layer.tags.each do |tag|
+        status[tag] = runner.run("docker push #{layer.project_tag(tag)}")
+      end
+
+      retval = status.values.reduce(:+)
+
+      level, color = retval.zero? ? %i[info green] : %i[error red]
+
+      logger.public_send(level,
+                         ui.color((retval.zero? ? 'SUCCESS' : 'ERROR'), color))
+
+      retval.zero?
     end
 
     private
@@ -34,23 +68,22 @@ module Blubber
       @runner ||= Runner.new(logger: logger)
     end
 
-    def tagger
-      @tagger ||= Tagger.new(layer: layer, image_id: nil)
-    end
-
-    def build_ids
-      @build_ids ||= {}
-    end
-
-    def build(layer)
+    def do_build
       status = nil
-      Dir.chdir(layer) do
-        status = runner.run("docker build --build-arg BRANCH_NAME=#{tagger.branch_name} .") do |stdout, _, _|
+      Dir.chdir(layer.directory) do
+        cmd = []
+        cmd += %w[docker build]
+        cmd += %W[--build-arg VERSION=#{layer.build_tag}]
+        cmd += %W[--cache-from #{layer.cache}] if layer.cache
+        cmd << '.'
+
+        status = runner.run(cmd) do |stdout, _, _|
           if stdout && (m = stdout.match(/Successfully built ([a-z0-9]{12})/))
-            build_ids[layer] = m[1]
+            layer.build_id = m[1]
           end
         end
       end
+
       status
     end
   end
